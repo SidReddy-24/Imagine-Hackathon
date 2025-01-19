@@ -16,37 +16,53 @@ interface Chat {
 }
 
 const exampleJson = {
-  "ITR": {
-    "ITR1": {
-      "CreationInfo": {
-        "SWVersionNo": "1.0",
-        "SWCreatedBy": "SW20230407",
-        "JSONCreatedBy": "SW20230407",
-        "JSONCreationDate": "2024-07-04",
-        "IntermediaryCity": "Delhi",
-      },
-      "Form_ITR1": {
-        "FormName": "ITR-1",
-        "Description": "Income Tax Return for AY 2022-23",
-        "AssessmentYear": "2023",
-        "SchemaVer": "Ver1.0",
-      },
-      "PersonalInfo": {
-        "AssesseeName": {
-          "FirstName": "John",
-          "MiddleName": "",
-          "SurNameOrOrgName": "Doe"
-        },
-        "PAN": "XXXXX1234X",
-        "Address": {
-          "ResidenceNo": "123",
-          "CityOrTownOrDistrict": "Bengaluru",
-          "StateCode": "15",
-          "CountryCode": "91",
-          "PinCode": "560001",
-        }
-      }
+  title: "Income Tax Return - AY 2022-23",
+  version: "1.0",
+  creationDate: "2024-07-04",
+  location: "Delhi",
+  
+  personalDetails: {
+    name: "John Doe",
+    pan: "XXXXX1234X",
+    address: {
+      street: "123 Main Street",
+      city: "Bengaluru",
+      state: "Karnataka",
+      pinCode: "560001"
+    },
+    contact: {
+      mobile: "+91 9999999999",
+      email: "john.doe@example.com"
     }
+  },
+
+  incomeDetails: {
+    salary: {
+      gross: "₹25,57,983",
+      allowances: "₹1,80,150",
+      net: "₹23,77,833"
+    },
+    deductions: {
+      standard: "₹50,000",
+      professional: "₹2,400",
+      total: "₹52,400"
+    },
+    taxableIncome: "₹23,25,433"
+  },
+
+  taxComputation: {
+    totalTax: "₹4,65,132",
+    educationCess: "₹18,605",
+    totalLiability: "₹4,83,737",
+    tdsPaid: "₹4,83,740",
+    refundDue: "₹3"
+  },
+
+  employerDetails: {
+    name: "Example Corp Ltd",
+    tan: "XXXX0000X",
+    address: "Tech Park, Electronic City",
+    category: "Private Sector"
   }
 };
 
@@ -54,6 +70,7 @@ export function ChatPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showJson, setShowJson] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
   const [chatHistory] = useState<Chat[]>([
     { id: '1', title: 'Financial Planning Discussion', date: '2024-03-20' },
     { id: '2', title: 'Investment Strategy', date: '2024-03-19' },
@@ -74,6 +91,16 @@ export function ChatPage() {
       setIsLoading(false);
       setShowJson(true);
     }, 5000);
+  };
+
+  const handleCopyJson = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(exampleJson, null, 2));
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000); // Reset after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
   };
 
   return (
@@ -206,15 +233,128 @@ export function ChatPage() {
 
             {showJson && !isLoading && (
               <>
-                <h2 className="text-2xl font-semibold text-white mb-4">Generated ITR JSON Format</h2>
+                <h2 className="text-2xl font-semibold text-white mb-4">Generated ITR Details</h2>
                 <div className="bg-black/30 rounded-lg p-6 overflow-auto max-h-[60vh] custom-scrollbar">
-                  <pre className="text-white/90 text-sm">
-                    {JSON.stringify(exampleJson, null, 2)}
-                  </pre>
+                  <div className="text-white/90 space-y-6">
+                    <section>
+                      <h3 className="text-lg font-semibold text-purple-300 mb-3">Basic Information</h3>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-white/60">Assessment Year</p>
+                          <p>{exampleJson.title}</p>
+                        </div>
+                        <div>
+                          <p className="text-white/60">Filing Date</p>
+                          <p>{exampleJson.creationDate}</p>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section>
+                      <h3 className="text-lg font-semibold text-purple-300 mb-3">Personal Details</h3>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-white/60">Name</p>
+                          <p>{exampleJson.personalDetails.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-white/60">PAN</p>
+                          <p>{exampleJson.personalDetails.pan}</p>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-white/60">Address</p>
+                          <p>{`${exampleJson.personalDetails.address.street}, ${exampleJson.personalDetails.address.city}, ${exampleJson.personalDetails.address.state} - ${exampleJson.personalDetails.address.pinCode}`}</p>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section>
+                      <h3 className="text-lg font-semibold text-purple-300 mb-3">Income Details</h3>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-white/60">Gross Salary</p>
+                          <p>{exampleJson.incomeDetails.salary.gross}</p>
+                        </div>
+                        <div>
+                          <p className="text-white/60">Net Salary</p>
+                          <p>{exampleJson.incomeDetails.salary.net}</p>
+                        </div>
+                        <div>
+                          <p className="text-white/60">Total Deductions</p>
+                          <p>{exampleJson.incomeDetails.deductions.total}</p>
+                        </div>
+                        <div>
+                          <p className="text-white/60">Taxable Income</p>
+                          <p>{exampleJson.incomeDetails.taxableIncome}</p>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section>
+                      <h3 className="text-lg font-semibold text-purple-300 mb-3">Tax Computation</h3>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-white/60">Total Tax</p>
+                          <p>{exampleJson.taxComputation.totalTax}</p>
+                        </div>
+                        <div>
+                          <p className="text-white/60">Education Cess</p>
+                          <p>{exampleJson.taxComputation.educationCess}</p>
+                        </div>
+                        <div>
+                          <p className="text-white/60">TDS Paid</p>
+                          <p>{exampleJson.taxComputation.tdsPaid}</p>
+                        </div>
+                        <div>
+                          <p className="text-white/60">Refund Due</p>
+                          <p>{exampleJson.taxComputation.refundDue}</p>
+                        </div>
+                      </div>
+                    </section>
+                  </div>
                 </div>
-                <p className="text-white/70 mt-4 text-sm">
-                  This is the generated ITR JSON format based on your Form 16.
-                </p>
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-white/70 text-sm">
+                    This is the processed information from your Form 16.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleCopyJson}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 
+                        text-white rounded-lg transition-colors text-sm"
+                    >
+                      {copySuccess ? (
+                        <>
+                          <span>Copied!</span>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </>
+                      ) : (
+                        <>
+                          <span>Copy JSON</span>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                              d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                          </svg>
+                        </>
+                      )}
+                    </button>
+                    <a
+                      href="https://eportal.incometax.gov.in/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 
+                        text-white rounded-lg transition-colors text-sm"
+                    >
+                      <span>File on Income Tax Portal</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
               </>
             )}
           </div>

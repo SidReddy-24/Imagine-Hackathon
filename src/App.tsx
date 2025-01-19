@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, Globe2, BarChart3, Wallet, Shield } from 'lucide-react';
+import { ArrowRight, IndianRupee, BarChart3, Wallet, Shield } from 'lucide-react';
 import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/clerk-react';
 import { Modal } from './components/Modal';
 import { Routes, Route, useNavigate } from 'react-router-dom';
@@ -59,8 +59,8 @@ function App() {
                 className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={() => navigate('/')}
               >
-                <Globe2 className="h-8 w-8 text-white" />
-                <span className="ml-2 text-xl font-bold text-white">PayFlow</span>
+                <IndianRupee className="h-8 w-8 text-white" />
+                <span className="ml-2 text-xl font-bold text-white">TaxSarthi</span>
               </div>
 
               {/* Right side - Auth buttons */}
@@ -96,16 +96,16 @@ function App() {
                       <span className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
                         isDark ? 'bg-purple-400/10 text-purple-300' : 'bg-purple-100 text-purple-600'
                       }`}>
-                        New feature: PayFlow Connect →
+                        New feature: TaxSarthi Connect →
                       </span>
                     </div>
                     <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-8 leading-[1.1]">
-                      Financial <br className="hidden md:block" />
-                      infrastructure for <br className="hidden md:block" />
-                      the internet
+                      Simplifying <br className="hidden md:block" />
+                      Tax Filing for <br className="hidden md:block" />
+                      Every Indian
                     </h1>
-                    <p className="text-xl text-white/80 mb-12 leading-relaxed max-w-xl">
-                      Millions of businesses of all sizes use PayFlow's software and APIs to accept payments, send payouts, and manage their businesses online.
+                    <p className="text-xl text-white/70 mb-8">
+                      Empowering millions of Indians to file taxes effortlessly. Your trusted companion for tax compliance, making every citizen's contribution count in building a stronger nation.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-6">
                       {isSignedIn ? (
@@ -229,8 +229,8 @@ function App() {
                     className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => navigate('/')}
                   >
-                    <Globe2 className="h-8 w-8 text-white" />
-                    <span className="ml-2 text-xl font-bold text-white">PayFlow</span>
+                    <IndianRupee className="h-8 w-8 text-white" />
+                    <span className="ml-2 text-xl font-bold text-white">TaxSarthi</span>
                   </div>
                   <div className="flex items-center space-x-4">
                     {isSignedIn ? (
@@ -298,7 +298,7 @@ function App() {
           </div>
           <div className="mt-8 pt-8 border-t border-white/10">
             <p className="text-center text-white/70 text-sm">
-              © 2025 PayFlow, Inc. All rights reserved.
+              © 2025 TaxSarthi, Inc. All rights reserved.
             </p>
           </div>
         </div>

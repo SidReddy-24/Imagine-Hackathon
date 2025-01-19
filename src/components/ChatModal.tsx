@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getGeminiResponse } from '../services/geminiService';
 
 // Define the Message type if not imported
 interface Message {
@@ -22,71 +23,43 @@ const ChatModal: React.FC<ChatModalProps> = ({ onClose, initialMessage }) => {
       timestamp: new Date()
     }
   ]);
-  const [inputText, setInputText] = useState('');
+  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim() || isLoading) return;
+    if (!input.trim() || isLoading) return;
 
-    // Add user message
-    const userMessage: Message = {
+    const userMessage = {
       id: Date.now().toString(),
-      text: inputText,
+      text: input,
       isUser: true,
       timestamp: new Date(),
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInputText('');
+    setInput('');
     setIsLoading(true);
 
     try {
-      // Make API call to Gemini
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            role: 'user',
-            parts: [{ text: inputText }]
-          }],
-          generationConfig: {
-            temperature: 1,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 8192,
-            responseMimeType: "text/plain"
-          }
-        }),
-      });
+      const response = await getGeminiResponse(input);
+      
+      const assistantMessage = {
+        id: (Date.now() + 1).toString(),
+        text: response,
+        isUser: false,
+        timestamp: new Date(),
+      };
 
-      const data = await response.json();
-      
-      // Extract response text
-      const botResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text || 
-        "Sorry, I couldn't process your request.";
-      
-      // Add bot response
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: botResponseText,
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, botMessage]);
+      setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error:', error);
-      // Add error message
-      const errorMessage: Message = {
+      console.error('Error getting response:', error);
+      setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
-        text: "Sorry, there was an error processing your request.",
+        text: "I'm sorry, I encountered an error. Please try again.",
         isUser: false,
         timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      }]);
     } finally {
       setIsLoading(false);
     }
@@ -135,8 +108,8 @@ const ChatModal: React.FC<ChatModalProps> = ({ onClose, initialMessage }) => {
           <div className="flex gap-2">
             <input
               type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
               disabled={isLoading}
               className="flex-1 bg-white/10 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50"
               placeholder="Type your message..."
