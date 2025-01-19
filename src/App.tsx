@@ -1,9 +1,14 @@
 import { useState } from 'react';
-import { ArrowRight, IndianRupee, BarChart3, Wallet, Shield } from 'lucide-react';
+import { ArrowRight, IndianRupee, BarChart3, Wallet, Shield, Menu } from 'lucide-react';
 import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/clerk-react';
 import { Modal } from './components/Modal';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Link } from 'react-router-dom';
 import { ChatPage } from './components/ChatPage';
+import { ChoiceDialog } from './components/ChoiceDialog';
+import { ManualEntryChat } from './components/ManualEntryChat';
+import { useClickOutside } from './hooks/useClickOutside';
+import { AdminLogin } from './components/AdminLogin';
+import { ProtectedAdminRoute } from './components/ProtectedAdminRoute';
 
 function App() {
   const { isSignedIn, user } = useUser();
@@ -13,8 +18,26 @@ function App() {
   })();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showChoiceDialog, setShowChoiceDialog] = useState(false);
+  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
 
   const navigate = useNavigate();
+
+  const handleStartNow = () => {
+    setShowChoiceDialog(true);
+  };
+
+  const handleWithForm16 = () => {
+    setShowChoiceDialog(false);
+    navigate('/chat');
+  };
+
+  const handleWithoutForm16 = () => {
+    setShowChoiceDialog(false);
+    navigate('/manual-entry');
+  };
+
+  const menuRef = useClickOutside(() => setIsAdminMenuOpen(false));
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
@@ -67,6 +90,38 @@ function App() {
               <div className="flex items-center space-x-4">
                 {isSignedIn ? (
                   <>
+                    <div ref={menuRef} className="relative">
+                      <button
+                        onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
+                        className="text-white/90 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors flex items-center gap-2"
+                      >
+                        <Menu className="h-5 w-5" />
+                      </button>
+                      
+                      {/* Admin Dropdown Menu */}
+                      {isAdminMenuOpen && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white/10 backdrop-blur-xl rounded-lg shadow-lg py-1 border border-white/20">
+                          <Link
+                            to="/admin/login"
+                            className="block px-4 py-2 text-white hover:bg-white/10 transition-colors"
+                          >
+                            Admin Dashboard
+                          </Link>
+                          <a
+                            href="/admin/users"
+                            className="block px-4 py-2 text-white hover:bg-white/10 transition-colors"
+                          >
+                            User Management
+                          </a>
+                          <a
+                            href="/admin/settings"
+                            className="block px-4 py-2 text-white hover:bg-white/10 transition-colors"
+                          >
+                            System Settings
+                          </a>
+                        </div>
+                      )}
+                    </div>
                     <span className="text-white/90">Welcome, {user.firstName}</span>
                     <UserButton afterSignOutUrl="/" />
                   </>
@@ -111,7 +166,7 @@ function App() {
                       {isSignedIn ? (
                         <div className="flex flex-col sm:flex-row gap-6">
                           <button 
-                            onClick={() => navigate('/chat')}
+                            onClick={handleStartNow}
                             className={`${
                               isDark 
                                 ? 'bg-white text-purple-900' 
@@ -128,7 +183,7 @@ function App() {
                         <>
                           <SignUpButton mode="modal">
                             <button 
-                              onClick={() => navigate('/chat')}
+                              onClick={handleStartNow}
                               className={`${
                                 isDark 
                                   ? 'bg-white text-purple-900' 
@@ -235,6 +290,38 @@ function App() {
                   <div className="flex items-center space-x-4">
                     {isSignedIn ? (
                       <>
+                        <div ref={menuRef} className="relative">
+                          <button
+                            onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
+                            className="text-white/90 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors flex items-center gap-2"
+                          >
+                            <Menu className="h-5 w-5" />
+                          </button>
+                          
+                          {/* Admin Dropdown Menu */}
+                          {isAdminMenuOpen && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white/10 backdrop-blur-xl rounded-lg shadow-lg py-1 border border-white/20">
+                              <Link
+                                to="/admin/login"
+                                className="block px-4 py-2 text-white hover:bg-white/10 transition-colors"
+                              >
+                                Admin Dashboard
+                              </Link>
+                              <a
+                                href="/admin/users"
+                                className="block px-4 py-2 text-white hover:bg-white/10 transition-colors"
+                              >
+                                User Management
+                              </a>
+                              <a
+                                href="/admin/settings"
+                                className="block px-4 py-2 text-white hover:bg-white/10 transition-colors"
+                              >
+                                System Settings
+                              </a>
+                            </div>
+                          )}
+                        </div>
                         <span className="text-white/90">Welcome, {user.firstName}</span>
                         <UserButton afterSignOutUrl="/" />
                       </>
@@ -254,6 +341,97 @@ function App() {
             </div>
           </div>
         } />
+        <Route path="/manual-entry" element={
+          <div className="min-h-screen">
+            <nav className="fixed w-full bg-white/10 backdrop-blur-xl z-50 border-b border-white/10">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between h-16 items-center">
+                  <div 
+                    className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => navigate('/')}
+                  >
+                    <IndianRupee className="h-8 w-8 text-white" />
+                    <span className="ml-2 text-xl font-bold text-white">TaxSarthi</span>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    {isSignedIn ? (
+                      <>
+                        <div ref={menuRef} className="relative">
+                          <button
+                            onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
+                            className="text-white/90 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors flex items-center gap-2"
+                          >
+                            <Menu className="h-5 w-5" />
+                          </button>
+                          
+                          {/* Admin Dropdown Menu */}
+                          {isAdminMenuOpen && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white/10 backdrop-blur-xl rounded-lg shadow-lg py-1 border border-white/20">
+                              <Link
+                                to="/admin/login"
+                                className="block px-4 py-2 text-white hover:bg-white/10 transition-colors"
+                              >
+                                Admin Dashboard
+                              </Link>
+                              <a
+                                href="/admin/users"
+                                className="block px-4 py-2 text-white hover:bg-white/10 transition-colors"
+                              >
+                                User Management
+                              </a>
+                              <a
+                                href="/admin/settings"
+                                className="block px-4 py-2 text-white hover:bg-white/10 transition-colors"
+                              >
+                                System Settings
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-white/90">Welcome, {user.firstName}</span>
+                        <UserButton afterSignOutUrl="/" />
+                      </>
+                    ) : (
+                      <SignInButton mode="modal">
+                        <button className="text-white/90 hover:text-white transition-colors">
+                          Sign in
+                        </button>
+                      </SignInButton>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </nav>
+            <div className="pt-16 h-[calc(100vh-4rem)]">
+              <ManualEntryChat />
+            </div>
+          </div>
+        } />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedAdminRoute>
+              <div>Admin Dashboard Content</div>
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedAdminRoute>
+              <div>User Management Content</div>
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedAdminRoute>
+              <div>Settings Content</div>
+            </ProtectedAdminRoute>
+          }
+        />
       </Routes>
 
       {/* Modal */}
@@ -262,6 +440,15 @@ function App() {
         onClose={() => setIsModalOpen(false)}
         imageUrl="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=2000&q=80"
       />
+
+      {/* Choice Dialog */}
+      {showChoiceDialog && (
+        <ChoiceDialog
+          onClose={() => setShowChoiceDialog(false)}
+          onWithForm16={handleWithForm16}
+          onWithoutForm16={handleWithoutForm16}
+        />
+      )}
 
       {/* Footer */}
       <footer className={`${
