@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, MessageSquarePlus, Clock, Star, Archive, Settings, ChevronLeft, Upload, Download, FileJson } from 'lucide-react';
 import ChatModal from './ChatModal';
+import { fileTax } from '../services/api';
 
 interface Message {
   id: string;
@@ -156,30 +157,23 @@ export function ChatPage() {
     startProgress();
 
     try {
-      // Simulate API call with setTimeout
-      setTimeout(() => {
-        // Use the demo JSON data directly
-        const demoJson = {
-          "ITR": {
-            "ITR1": {
-              // ... (copy the entire demo.json content here)
-            }
-          }
-        };
-        
-        setJsonData(JSON.stringify(demoJson, null, 2));
-        setProgress(100); // Skip to 100%
-      }, 15000); // Wait for 15 seconds before completing
+      // Process Form 16 data
+      const form16Data = await processForm16(selectedFile); // You'll need to implement this
+      
+      // Call the backend API
+      const response = await fileTax({
+        userId: user?.id, // Get from Clerk
+        primaryIncome: form16Data.partB.salaryDetails.grossSalary.total,
+        secondaryIncome: 0, // Or get from form
+        form16Data,
+      });
 
+      setJsonData(JSON.stringify(response.data, null, 2));
+      setProgress(100);
     } catch (error) {
-      console.error('Error processing file:', error);
+      console.error('Error:', error);
       setStatus('Error processing file. Please try again.');
       setIsProcessing(false);
-      
-      setTimeout(() => {
-        setStatus('');
-        setProgress(0);
-      }, 3000);
     }
   };
 
@@ -206,9 +200,9 @@ export function ChatPage() {
 
   return (
     <div className="flex min-h-screen pt-16 relative">
-      {/* Sidebar - Updated with hover functionality */}
+      {/* Sidebar */}
       <div 
-        className={`fixed left-0 top-16 h-[calc(100vh-16rem)] z-20 transition-all duration-300 ease-in-out
+        className={`fixed left-0 top-16 h-[calc(100vh-4rem)] z-20 transition-all duration-300 ease-in-out
           w-16 hover:w-72
           border-r border-white/10 overflow-y-auto
           scrollbar-hide group`}
@@ -290,56 +284,66 @@ export function ChatPage() {
         </div>
       </div>
 
-      {/* Main Chat Area - Update margin based on hover */}
-      <div className="flex-1 transition-all duration-300 ml-16 group-hover:ml-72 mb-12">
-        <div className="max-w-4xl mx-auto p-6">
-          <div className="bg-white/10 backdrop-blur-xl rounded-lg p-6 min-h-[calc(100vh-16rem)] flex flex-col">
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto space-y-4 mb-4 scrollbar-hide">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      msg.isUser
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-white/10 text-white'
-                    }`}
-                  >
-                    {msg.text}
+      {/* Main Content Area */}
+      <div className="flex-1 transition-all duration-300 ml-16 group-hover:ml-72">
+        <div className="max-w-4xl mx-auto p-6 min-h-[calc(100vh-4rem)]">
+          {/* Form Upload Container */}
+          <div className="bg-white/10 backdrop-blur-xl rounded-lg p-8 h-full">
+            <div className="flex flex-col items-center justify-center h-full space-y-8">
+              {!isProcessing && !jsonData && (
+                <div className="text-center">
+                  <div className="mb-6">
+                    <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Upload className="h-8 w-8 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-semibold text-white mb-2">Upload Form 16</h2>
+                    <p className="text-white/70">Upload your Form 16 PDF to generate ITR JSON</p>
                   </div>
+                  
+                  <label className="relative cursor-pointer bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors inline-flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <FileJson className="h-5 w-5" />
+                    Choose File
+                  </label>
                 </div>
-              ))}
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="bg-white/10 text-white rounded-lg p-3">
-                    Typing...
+              )}
+
+              {isProcessing && (
+                <div className="w-full max-w-md">
+                  <div className="mb-4 text-center">
+                    <h3 className="text-lg font-medium text-white mb-2">{status}</h3>
+                    <p className="text-white/70 text-sm">{file?.name}</p>
+                  </div>
+                  <div className="bg-white/10 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className="bg-purple-600 h-full transition-all duration-300 ease-out"
+                      style={{ width: `${progress}%` }}
+                    />
                   </div>
                 </div>
               )}
-              <div ref={messagesEndRef} />
-            </div>
 
-            {/* Input Form */}
-            <form onSubmit={handleSubmit} className="mt-auto">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="flex-1 bg-white/10 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Type your message..."
-                />
-                <button
-                  type="submit"
-                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Send
-                </button>
-              </div>
-            </form>
+              {jsonData && !isProcessing && (
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Download className="h-8 w-8 text-green-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-4">ITR JSON Generated Successfully!</h3>
+                  <button
+                    onClick={handleDownload}
+                    className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors inline-flex items-center gap-2"
+                  >
+                    <Download className="h-5 w-5" />
+                    Download JSON
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -351,66 +355,6 @@ export function ChatPage() {
           initialMessage="How can I help you today?"
         />
       )}
-
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-white/10 backdrop-blur-xl rounded-lg p-8 min-h-[calc(100vh-16rem)]">
-          <div className="flex flex-col items-center justify-center h-full space-y-8">
-            {!isProcessing && !jsonData && (
-              <div className="text-center">
-                <div className="mb-6">
-                  <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Upload className="h-8 w-8 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-semibold text-white mb-2">Upload Form 16</h2>
-                  <p className="text-white/70">Upload your Form 16 PDF to generate ITR JSON</p>
-                </div>
-                
-                <label className="relative cursor-pointer bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors inline-flex items-center gap-2">
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                  <FileJson className="h-5 w-5" />
-                  Choose File
-                </label>
-              </div>
-            )}
-
-            {isProcessing && (
-              <div className="w-full max-w-md">
-                <div className="mb-4 text-center">
-                  <h3 className="text-lg font-medium text-white mb-2">{status}</h3>
-                  <p className="text-white/70 text-sm">{file?.name}</p>
-                </div>
-                <div className="bg-white/10 rounded-full h-2 overflow-hidden">
-                  <div 
-                    className="bg-purple-600 h-full transition-all duration-300 ease-out"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {jsonData && !isProcessing && (
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Download className="h-8 w-8 text-green-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-4">ITR JSON Generated Successfully!</h3>
-                <button
-                  onClick={handleDownload}
-                  className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors inline-flex items-center gap-2"
-                >
-                  <Download className="h-5 w-5" />
-                  Download JSON
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
     </div>
   );
 } 

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ArrowRight, Globe2, BarChart3, Wallet, Shield, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowRight, Globe2, BarChart3, Wallet, Shield } from 'lucide-react';
 import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/clerk-react';
 import { Modal } from './components/Modal';
 import { Routes, Route, useNavigate } from 'react-router-dom';
@@ -7,16 +7,10 @@ import { ChatPage } from './components/ChatPage';
 
 function App() {
   const { isSignedIn, user } = useUser();
-  const [isDark, setIsDark] = useState(() => {
+  const isDark = (() => {
     const savedTheme = localStorage.getItem('theme');
     return savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  });
-
-  useEffect(() => {
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  }, [isDark]);
-
-  const toggleTheme = () => setIsDark(!isDark);
+  })();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -60,24 +54,16 @@ function App() {
         <nav className="fixed w-full bg-white/10 backdrop-blur-xl z-50 border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16 items-center">
-              <div className="flex items-center">
+              {/* Logo */}
+              <div 
+                className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => navigate('/')}
+              >
                 <Globe2 className="h-8 w-8 text-white" />
                 <span className="ml-2 text-xl font-bold text-white">PayFlow</span>
               </div>
-              <div className="hidden md:flex items-center space-x-8">
-                <div className="relative group">
-                  <button className="text-white/90 hover:text-white flex items-center">
-                    Products <ChevronDown className="ml-1 h-4 w-4" />
-                  </button>
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-white/10 backdrop-blur-xl rounded-lg p-2 opacity-0 group-hover:opacity-100 transition-opacity invisible group-hover:visible">
-                    <a href="#" className="block px-4 py-2 text-white hover:bg-white/20 rounded-md">Payments</a>
-                    <a href="#" className="block px-4 py-2 text-white hover:bg-white/20 rounded-md">Billing</a>
-                    <a href="#" className="block px-4 py-2 text-white hover:bg-white/20 rounded-md">Connect</a>
-                  </div>
-                </div>
-                <a href="#" className="text-white/90 hover:text-white">Solutions</a>
-                <a href="#" className="text-white/90 hover:text-white">Resources</a>
-              </div>
+
+              {/* Right side - Auth buttons */}
               <div className="flex items-center space-x-4">
                 {isSignedIn ? (
                   <>
@@ -85,21 +71,11 @@ function App() {
                     <UserButton afterSignOutUrl="/" />
                   </>
                 ) : (
-                  <>
-                    <SignInButton mode="modal">
-                      <button className="text-white/90 hover:text-white">
-                        Sign in
-                      </button>
-                    </SignInButton>
-                    <SignUpButton mode="modal">
-                      <button 
-                        className="bg-white text-purple-600 px-8 py-4 rounded-full hover:opacity-90 transition flex items-center justify-center font-semibold text-lg shadow-lg"
-                        onClick={() => navigate('/chat')}
-                      >
-                        Start now <ArrowRight className="ml-2 h-5 w-5" />
-                      </button>
-                    </SignUpButton>
-                  </>
+                  <SignInButton mode="modal">
+                    <button className="text-white/90 hover:text-white transition-colors">
+                      Sign in
+                    </button>
+                  </SignInButton>
                 )}
               </div>
             </div>
@@ -172,17 +148,40 @@ function App() {
 
                   {/* Right Column - Image */}
                   <div className="relative lg:h-[700px] flex items-center">
-                    <div className={`${
-                      isDark ? 'bg-purple-800/20' : 'bg-white/10'
-                    } backdrop-blur-xl p-8 rounded-3xl border ${
-                      isDark ? 'border-purple-500/20' : 'border-white/20'
-                    } shadow-2xl relative overflow-hidden`}>
-                      <img
-                        src="/WhatsApp Image 2025-01-19 at 7.26.18 AM.jpeg"
-                        alt="Financial App Interface Mockup"
-                        className="w-full h-auto rounded-2xl shadow-lg"
-                      />
-                    </div>
+                    <button 
+                      onClick={() => setIsModalOpen(true)}
+                      className="w-full transform transition-transform hover:scale-[1.02] focus:outline-none"
+                    >
+                      <div className={`${
+                        isDark ? 'bg-purple-800/20' : 'bg-white/10'
+                      } backdrop-blur-xl p-8 rounded-3xl border ${
+                        isDark ? 'border-purple-500/20' : 'border-white/20'
+                      } shadow-2xl relative overflow-hidden`}>
+                        <img
+                          src="/WhatsApp Image 2025-01-19 at 7.26.18 AM.jpeg"
+                          alt="Financial App Interface Mockup"
+                          className="w-full h-auto rounded-2xl shadow-lg"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl">
+                          <div className="absolute bottom-8 left-8 right-8">
+                            <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
+                              <div className="flex items-center space-x-4 mb-4">
+                                <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                                  <BarChart3 className="h-6 w-6 text-purple-300" />
+                                </div>
+                                <div>
+                                  <h3 className="text-white font-semibold">Real-time analytics</h3>
+                                  <p className="text-white/70 text-sm">Track your business growth</p>
+                                </div>
+                              </div>
+                              <div className="h-1 w-full bg-white/20 rounded-full overflow-hidden">
+                                <div className="h-full w-2/3 bg-purple-400 rounded-full"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </button>
                   </div>
                 </div>
               </div>

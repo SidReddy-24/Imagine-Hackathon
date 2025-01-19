@@ -23,31 +23,73 @@ const ChatModal: React.FC<ChatModalProps> = ({ onClose, initialMessage }) => {
     }
   ]);
   const [inputText, setInputText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || isLoading) return;
 
-    const newMessage: Message = {
+    // Add user message
+    const userMessage: Message = {
       id: Date.now().toString(),
       text: inputText,
       isUser: true,
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, newMessage]);
+    setMessages(prev => [...prev, userMessage]);
     setInputText('');
+    setIsLoading(true);
 
-    // Simulate bot response
-    setTimeout(() => {
-      const botResponse: Message = {
+    try {
+      // Make API call to Gemini
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            role: 'user',
+            parts: [{ text: inputText }]
+          }],
+          generationConfig: {
+            temperature: 1,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 8192,
+            responseMimeType: "text/plain"
+          }
+        }),
+      });
+
+      const data = await response.json();
+      
+      // Extract response text
+      const botResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+        "Sorry, I couldn't process your request.";
+      
+      // Add bot response
+      const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I'm here to help! 😊",
+        text: botResponseText,
         isUser: false,
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, botResponse]);
-    }, 1000);
+      setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Error:', error);
+      // Add error message
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "Sorry, there was an error processing your request.",
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -62,36 +104,47 @@ const ChatModal: React.FC<ChatModalProps> = ({ onClose, initialMessage }) => {
             Close
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-          {messages.map((message) => (
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
+          {messages.map((msg) => (
             <div
-              key={message.id}
-              className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+              key={msg.id}
+              className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
             >
               <div
                 className={`max-w-[80%] rounded-lg p-3 ${
-                  message.isUser
-                    ? 'bg-white/20 text-white'
+                  msg.isUser
+                    ? 'bg-purple-500 text-white'
                     : 'bg-white/10 text-white'
                 }`}
               >
-                {message.text}
+                {msg.text}
               </div>
             </div>
           ))}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-white/10 text-white rounded-lg p-3">
+                Thinking...
+              </div>
+            </div>
+          )}
         </div>
-        <form onSubmit={handleSubmit} className="mt-auto">
+
+        <form onSubmit={handleSubmit} className="mt-4">
           <div className="flex gap-2">
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              className="flex-1 bg-white/10 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={isLoading}
+              className="flex-1 bg-white/10 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50"
               placeholder="Type your message..."
             />
             <button
               type="submit"
-              className="bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 transition-colors"
+              disabled={isLoading}
+              className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:hover:bg-purple-500"
             >
               Send
             </button>
