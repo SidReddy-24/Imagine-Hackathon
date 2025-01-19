@@ -1,19 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, MessageSquarePlus, Clock, Star, Archive, Settings, ChevronLeft, Upload, Download, FileJson } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, MessageSquarePlus, Clock, Star, Archive, Settings } from 'lucide-react';
 import ChatModal from './ChatModal';
-import { fileTax } from '../services/api';
-import { processForm16 } from '../services/pdfService';
 
 interface Message {
   id: string;
   text: string;
   isUser: boolean;
   timestamp: Date;
-  isDownloadable?: boolean;
-}
-
-interface ChatPageProps {
-  isDark: boolean;
 }
 
 interface Chat {
@@ -22,194 +15,48 @@ interface Chat {
   date: string;
 }
 
+const exampleJson = {
+  "ITR": {
+    "ITR1": {
+      "CreationInfo": {
+        "SWVersionNo": "1.0",
+        "SWCreatedBy": "SW20230407",
+        "JSONCreatedBy": "SW20230407",
+        "JSONCreationDate": "2024-07-04",
+        "IntermediaryCity": "Delhi",
+      },
+      "Form_ITR1": {
+        "FormName": "ITR-1",
+        "Description": "Income Tax Return for AY 2022-23",
+        "AssessmentYear": "2023",
+        "SchemaVer": "Ver1.0",
+      },
+      "PersonalInfo": {
+        "AssesseeName": {
+          "FirstName": "John",
+          "MiddleName": "",
+          "SurNameOrOrgName": "Doe"
+        },
+        "PAN": "XXXXX1234X",
+        "Address": {
+          "ResidenceNo": "123",
+          "CityOrTownOrDistrict": "Bengaluru",
+          "StateCode": "15",
+          "CountryCode": "91",
+          "PinCode": "560001",
+        }
+      }
+    }
+  }
+};
+
 export function ChatPage() {
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [chatHistory] = useState<Chat[]>([
     { id: '1', title: 'Financial Planning Discussion', date: '2024-03-20' },
     { id: '2', title: 'Investment Strategy', date: '2024-03-19' },
     { id: '3', title: 'Tax Planning', date: '2024-03-18' },
   ]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState('');
-  const [jsonData, setJsonData] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const progressInterval = useRef<NodeJS.Timeout | null>(null);
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const askDoubt = async (inputText: string) => {
-    try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            role: 'user',
-            parts: [{ text: inputText }],
-          }],
-        }),
-      });
-
-      const data = await response.json();
-      
-      // Extract the response text from the Gemini API response
-      const botResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't process your request.";
-      
-      const botMessage: Message = {
-        id: Date.now().toString(),
-        text: botResponseText,
-        isUser: false,
-        timestamp: new Date(),
-      };
-      
-      setMessages(prev => [...prev, botMessage]);
-    } catch (error) {
-      console.error('Error asking doubt:', error);
-      // Add error message to chat
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        text: "Sorry, there was an error processing your request.",
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!message.trim()) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: message,
-      isUser: true,
-      timestamp: new Date(),
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
-    const currentMessage = message;
-    setMessage('');
-    setIsTyping(true);
-
-    await askDoubt(currentMessage);
-    setIsTyping(false);
-  };
-
-  const statusMessages = [
-    { threshold: 30, message: 'Uploading Form 16...' },
-    { threshold: 60, message: 'Processing Form...' },
-    { threshold: 90, message: 'Generating ITR...' }
-  ];
-
-  const startProgress = () => {
-    setProgress(0);
-    setIsProcessing(true);
-    
-    progressInterval.current = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          if (progressInterval.current) {
-            clearInterval(progressInterval.current);
-          }
-          return 100;
-        }
-        return prev + 1;
-      });
-    }, 150); // 15 seconds total duration (150ms * 100 steps)
-  };
-
-  useEffect(() => {
-    const currentMessage = statusMessages.find(msg => progress <= msg.threshold);
-    if (currentMessage) {
-      setStatus(currentMessage.message);
-    }
-    
-    if (progress >= 100) {
-      setIsProcessing(false);
-      if (progressInterval.current) {
-        clearInterval(progressInterval.current);
-      }
-    }
-  }, [progress]);
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || file.type !== 'application/pdf') {
-      setMessages(prev => [...prev, {
-        id: Date.now().toString(),
-        text: "Please upload a valid PDF file",
-        isUser: false,
-        timestamp: new Date()
-      }]);
-      return;
-    }
-
-    setPdfFile(file);
-    setIsLoading(true);
-
-    try {
-      // Simulate 15 second processing
-      await new Promise(resolve => setTimeout(resolve, 15000));
-      
-      // Load demo.json content
-      const demoJson = {
-        "ITR": {
-          "ITR1": {
-            // ... content from demo.json
-          }
-        }
-      };
-
-      setJsonData(JSON.stringify(demoJson, null, 2));
-    } catch (error) {
-      console.error('Error:', error);
-      setMessages(prev => [...prev, {
-        id: Date.now().toString(),
-        text: "Error processing Form 16. Please try again.",
-        isUser: false,
-        timestamp: new Date()
-      }]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDownload = () => {
-    if (!jsonData) return;
-    
-    try {
-      const blob = new Blob([jsonData], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'ITR-Return.json';
-      document.body.appendChild(a);
-      a.click();
-      
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error downloading file:', error);
-      setStatus('Error downloading file. Please try again.');
-    }
-  };
 
   return (
     <div className="flex min-h-screen pt-16 relative">
@@ -300,76 +147,16 @@ export function ChatPage() {
       {/* Main Content Area */}
       <div className="flex-1 transition-all duration-300 ml-16 group-hover:ml-72">
         <div className="max-w-4xl mx-auto p-6 min-h-[calc(100vh-4rem)]">
-          {/* Form Upload Container */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-lg p-8 h-full">
-            <div className="flex flex-col items-center justify-center h-full space-y-8">
-              {!isLoading && !jsonData && (
-                <div className="text-center">
-                  <div className="mb-6">
-                    <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Upload className="h-8 w-8 text-white" />
-                    </div>
-                    <h2 className="text-2xl font-semibold text-white mb-2">Upload Form 16</h2>
-                    <p className="text-white/70">Upload your Form 16 PDF to generate ITR JSON</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 mb-4">
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      id="pdf-upload"
-                      disabled={isLoading}
-                    />
-                    <label
-                      htmlFor="pdf-upload"
-                      className="cursor-pointer bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50"
-                    >
-                      {isLoading ? (
-                        <div className="flex items-center gap-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                          Processing...
-                        </div>
-                      ) : (
-                        "Upload Form 16"
-                      )}
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {isProcessing && (
-                <div className="w-full max-w-md">
-                  <div className="mb-4 text-center">
-                    <h3 className="text-lg font-medium text-white mb-2">{status}</h3>
-                    <p className="text-white/70 text-sm">{file?.name}</p>
-                  </div>
-                  <div className="bg-white/10 rounded-full h-2 overflow-hidden">
-                    <div 
-                      className="bg-purple-600 h-full transition-all duration-300 ease-out"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {jsonData && !isLoading && (
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Download className="h-8 w-8 text-green-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-4">ITR JSON Generated Successfully!</h3>
-                  <button
-                    onClick={handleDownload}
-                    className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors inline-flex items-center gap-2"
-                  >
-                    <Download className="h-5 w-5" />
-                    Download JSON
-                  </button>
-                </div>
-              )}
+          <div className="bg-white/10 backdrop-blur-xl rounded-lg p-8">
+            <h2 className="text-2xl font-semibold text-white mb-4">Example ITR JSON Format</h2>
+            <div className="bg-black/30 rounded-lg p-6 overflow-auto max-h-[60vh] custom-scrollbar">
+              <pre className="text-white/90 text-sm">
+                {JSON.stringify(exampleJson, null, 2)}
+              </pre>
             </div>
+            <p className="text-white/70 mt-4 text-sm">
+              This is an example of the ITR JSON format that will be generated from your Form 16.
+            </p>
           </div>
         </div>
       </div>
