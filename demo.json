@@ -1,0 +1,217 @@
+{
+    "ITR": {
+      "ITR1": {
+        "CreationInfo": {
+          "SWVersionNo": "1.0",
+          "SWCreatedBy": "SW20230407",
+          "JSONCreatedBy": "SW20230407",
+          "JSONCreationDate": "2024-07-04",
+          "IntermediaryCity": "Delhi",
+          "Digest": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        "Form_ITR1": {
+          "FormName": "ITR-1",
+          "Description": "Income Tax Return for AY 2022-23",
+          "AssessmentYear": "2023",
+          "SchemaVer": "Ver1.0",
+          "FormVer": "Ver1.0"
+        },
+        "PersonalInfo": {
+          "AssesseeName": {
+            "FirstName": null,
+            "MiddleName": null,
+            "SurNameOrOrgName": null
+          },
+          "PAN": "xxxxxxxxxx",
+          "Address": {
+            "ResidenceNo": "158, Victoria Bakery Bldg.",
+            "ResidenceName": null,
+            "RoadOrStreet": "Mody Road",
+            "LocalityOrArea": "Fort",
+            "CityOrTownOrDistrict": "Bengaluru",
+            "StateCode": "15",
+            "CountryCode": "91",
+            "PinCode": "400001",
+            "CountryCodeMobile": 91,
+            "MobileNo": "9999999999",
+            "EmailAddress": "xyz@gmail.com"
+          },
+          "DOB": "YYYY-MM-DD",
+          "EmployerCategory": "OTH"
+        },
+        "FilingStatus": {
+          "ReturnFileSec": 11,
+          "NewTaxRegime": "N",
+          "SeventhProvisio139": "N",
+            "IncrExpAggAmt2LkTrvFrgnCntryFlg": "N",
+            "AmtSeventhProvisio139ii": null,
+            "IncrExpAggAmt1LkElctrctyPrYrFlg": "N",
+            "AmtSeventhProvisio139iii": null,
+            "clauseiv7provisio139i": "N",
+            "clauseiv7provisio139iDtls": [],
+            "ReceiptNo": null,
+          "NoticeNo": null,
+          "OrigRetFiledDate": null,
+          "NoticeDateUnderSec": null
+        },
+  "PartA_139_8A": null,
+  
+        "ITR1_IncomeDeductions": {
+          "GrossSalary": 2557983,
+          "Salary": 2557983,
+          "PerquisitesValue": 0,
+          "ProfitsInSalary": 0,
+          "IncomeNotified89A": 0,
+          "IncomeNotified89AType": [],
+          "IncomeNotifiedOther89A": null,
+          "AllwncExemptUs10": {
+            "AllwncExemptUs10Dtls": [],
+            "TotalAllwncExemptUs10": 180150
+          },
+          "Increliefus89A": null,
+          "NetSalary": 2377833,
+          "DeductionUs16": 52400,
+          "DeductionUs16ia": 50000,
+          "EntertainmentAlw16ii": 0,
+          "ProfessionalTaxUs16iii": 2400,
+          "IncomeFromSal": 2325433,
+          "TypeOfHP": null,
+          "GrossRentReceived": null,
+          "TaxPaidlocalAuth": null,
+          "AnnualValue": null,
+          "StandardDeduction": null,
+          "InterestPayable": null,
+          "ArrearsUnrealizedRentRcvd": null,
+          "TotalIncomeOfHP": 0,
+          "IncomeOthSrc": 0,
+          "OthersInc": {
+            "OthersIncDtlsOthSrc": []
+          },
+          "DeductionUs57iia": null,
+          "Increliefus89AOS": null,
+          "GrossTotIncome": 2325433,
+          "UsrDeductUndChapVIA": {
+            "Section80C": 150000,
+            "Section80CCC": 0,
+            "Section80CCDEmployeeOrSE": 0,
+            "Section80CCD1B": 0,
+            "Section80CCDEmployer": 0,
+            "Section80D": 0,
+            "Section80DDUsrType": null,
+            "Section80DD": 0,
+            "Section80DDBUsrType": null,
+            "Section80DDB": 0,
+            "Section80E": 0,
+            "Section80EE": 0,
+            "Section80EEA": null,
+            "Section80EEB": null,
+            "Section80G": 0,
+            "Section80GG": 0,
+            "Section80GGA": 0,
+            "Section80GGC": 0,
+            "Section80UUsrType": null,
+            "Section80U": 0,
+            "Section80TTA": 0,
+            "Section80TTB": 0,
+            "AnyOthSec80CCH": 0,
+            "TotalChapVIADeductions": null
+          },
+          "DeductUndChapVIA": {
+            "Section80C": 150000,
+            "Section80CCC": 0,
+            "Section80CCDEmployeeOrSE": 0,
+            "Section80CCD1B": 0,
+            "Section80CCDEmployer": 0,
+            "Section80D": 0,
+            "Section80DD": 0,
+            "Section80DDB": 0,
+            "Section80E": 0,
+            "Section80EE": 0,
+            "Section80EEA": 0,
+            "Section80EEB": 0,
+            "Section80G": 0,
+            "Section80GG": 0,
+            "Section80GGA": 0,
+            "Section80GGC": 0,
+            "Section80U": 0,
+            "Section80TTA": 0,
+            "Section80TTB": 0,
+            "AnyOthSec80CCH": 0,
+            "TotalChapVIADeductions": 150000
+          },
+          "TotalIncome": 2175433,
+          "ExemptIncAgriOthUs10": {
+            "ExemptIncAgriOthUs10Dtls": [],
+            "ExemptIncAgriOthUs10Total": 0
+          }
+        },
+        "ITR1_TaxComputation": {
+          "TotalTaxPayable": 465132,
+          "Rebate87A": 0,
+          "TaxPayableOnRebate": 465132,
+          "EducationCess": 18605,
+          "GrossTaxLiability": 483737,
+          "Section89": 0,
+          "NetTaxLiability": 483737,
+          "TotalIntrstPay": 0,
+          "IntrstPay": {
+            "IntrstPayUs234A": 0,
+            "IntrstPayUs234B": 0,
+            "IntrstPayUs234C": 0,
+            "LateFilingFee234F": 0
+          },
+          "TotTaxPlusIntrstPay": 483737
+        },
+        "TaxPaid": {
+          "TaxesPaid": {
+            "AdvanceTax": 0,
+            "TDS": 483740,
+            "TCS": 0,
+            "SelfAssessmentTax": 0,
+            "TotalTaxesPaid": 483740
+          },
+          "BalTaxPayable": 0
+        },
+        "Refund": {
+          "RefundDue": 1,
+          "BankAccountDtls": {
+  "AddtnlBankDetails": []
+  }
+        },
+        "PartB-ATI": null,
+  "Schedule80G": null,
+  "Schedule80GGA": null,
+  "Schedule80D": null,
+        "TDSonSalaries": {
+          "TDSonSalary": [
+            {
+              "EmployerOrDeductorOrCollectDetl": {
+                "TAN": "xxxxxxxxxx",
+                "EmployerOrDeductorOrCollecterName": "xxxxxxxxxx"
+              },
+              "IncChrgSal": 2325433,
+              "TotalTDSSal": 483740
+            }
+          ],
+          "TotalTDSonSalaries": 483740
+        },
+        "TDSonOthThanSals": null,
+  "ScheduleTDS3Dtls": null,
+  "ScheduleTCS": null,
+  "TaxPayments": {
+      "TaxPayment": [],
+  "TotalTaxPayments": 0
+  },
+        "Verification": {
+          "Declaration": {
+            "AssesseeVerName": null,
+            "FatherName": null,
+            "AssesseeVerPAN": null
+          },
+          "Capacity": "S",
+          "Place": "Bengaluru"
+        },
+        "TaxReturnPreparer": null
+      }
+    }
+  }
