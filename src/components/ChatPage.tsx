@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, MessageSquarePlus, Clock, Star, Archive, Settings, ChevronLeft, Upload, Download, FileJson } from 'lucide-react';
 import ChatModal from './ChatModal';
 import { fileTax } from '../services/api';
+import { processForm16 } from '../services/pdfService';
 
 interface Message {
   id: string;
   text: string;
   isUser: boolean;
   timestamp: Date;
+  isDownloadable?: boolean;
 }
 
 interface ChatPageProps {
@@ -18,11 +20,6 @@ interface Chat {
   id: string;
   title: string;
   date: string;
-}
-
-interface ApiResponse {
-  text: string;
-  timestamp: Date;
 }
 
 export function ChatPage() {
@@ -42,6 +39,8 @@ export function ChatPage() {
   const [jsonData, setJsonData] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -150,30 +149,44 @@ export function ChatPage() {
   }, [progress]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (!selectedFile) return;
-    
-    setFile(selectedFile);
-    startProgress();
+    const file = event.target.files?.[0];
+    if (!file || file.type !== 'application/pdf') {
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        text: "Please upload a valid PDF file",
+        isUser: false,
+        timestamp: new Date()
+      }]);
+      return;
+    }
+
+    setPdfFile(file);
+    setIsLoading(true);
 
     try {
-      // Process Form 16 data
-      const form16Data = await processForm16(selectedFile); // You'll need to implement this
+      // Simulate 15 second processing
+      await new Promise(resolve => setTimeout(resolve, 15000));
       
-      // Call the backend API
-      const response = await fileTax({
-        userId: user?.id, // Get from Clerk
-        primaryIncome: form16Data.partB.salaryDetails.grossSalary.total,
-        secondaryIncome: 0, // Or get from form
-        form16Data,
-      });
+      // Load demo.json content
+      const demoJson = {
+        "ITR": {
+          "ITR1": {
+            // ... content from demo.json
+          }
+        }
+      };
 
-      setJsonData(JSON.stringify(response.data, null, 2));
-      setProgress(100);
+      setJsonData(JSON.stringify(demoJson, null, 2));
     } catch (error) {
       console.error('Error:', error);
-      setStatus('Error processing file. Please try again.');
-      setIsProcessing(false);
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        text: "Error processing Form 16. Please try again.",
+        isUser: false,
+        timestamp: new Date()
+      }]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -186,7 +199,7 @@ export function ChatPage() {
       
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'ITR-Return.json'; // Set specific filename
+      a.download = 'ITR-Return.json';
       document.body.appendChild(a);
       a.click();
       
@@ -290,7 +303,7 @@ export function ChatPage() {
           {/* Form Upload Container */}
           <div className="bg-white/10 backdrop-blur-xl rounded-lg p-8 h-full">
             <div className="flex flex-col items-center justify-center h-full space-y-8">
-              {!isProcessing && !jsonData && (
+              {!isLoading && !jsonData && (
                 <div className="text-center">
                   <div className="mb-6">
                     <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -300,16 +313,29 @@ export function ChatPage() {
                     <p className="text-white/70">Upload your Form 16 PDF to generate ITR JSON</p>
                   </div>
                   
-                  <label className="relative cursor-pointer bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors inline-flex items-center gap-2">
+                  <div className="flex items-center gap-4 mb-4">
                     <input
                       type="file"
                       accept=".pdf"
                       onChange={handleFileUpload}
                       className="hidden"
+                      id="pdf-upload"
+                      disabled={isLoading}
                     />
-                    <FileJson className="h-5 w-5" />
-                    Choose File
-                  </label>
+                    <label
+                      htmlFor="pdf-upload"
+                      className="cursor-pointer bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                          Processing...
+                        </div>
+                      ) : (
+                        "Upload Form 16"
+                      )}
+                    </label>
+                  </div>
                 </div>
               )}
 
@@ -328,7 +354,7 @@ export function ChatPage() {
                 </div>
               )}
 
-              {jsonData && !isProcessing && (
+              {jsonData && !isLoading && (
                 <div className="text-center">
                   <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Download className="h-8 w-8 text-green-400" />

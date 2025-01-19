@@ -162,24 +162,6 @@ function App() {
                           alt="Financial App Interface Mockup"
                           className="w-full h-auto rounded-2xl shadow-lg"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl">
-                          <div className="absolute bottom-8 left-8 right-8">
-                            <div className="bg-white/10 backdrop-blur-md rounded-xl p-6">
-                              <div className="flex items-center space-x-4 mb-4">
-                                <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
-                                  <BarChart3 className="h-6 w-6 text-purple-300" />
-                                </div>
-                                <div>
-                                  <h3 className="text-white font-semibold">Real-time analytics</h3>
-                                  <p className="text-white/70 text-sm">Track your business growth</p>
-                                </div>
-                              </div>
-                              <div className="h-1 w-full bg-white/20 rounded-full overflow-hidden">
-                                <div className="h-full w-2/3 bg-purple-400 rounded-full"></div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
                       </div>
                     </button>
                   </div>
@@ -239,7 +221,7 @@ function App() {
           </>
         } />
         <Route path="/chat" element={
-          <>
+          <div className="min-h-screen">
             <nav className="fixed w-full bg-white/10 backdrop-blur-xl z-50 border-b border-white/10">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16 items-center">
@@ -267,10 +249,10 @@ function App() {
                 </div>
               </div>
             </nav>
-            <div className="pt-16">
+            <div className="pt-16 h-[calc(100vh-4rem)]">
               <ChatPage />
             </div>
-          </>
+          </div>
         } />
       </Routes>
 
