@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, MessageSquarePlus, Clock, Star, Archive, Settings } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, MessageSquarePlus, Clock, Star, Archive, Settings, Upload } from 'lucide-react';
 import ChatModal from './ChatModal';
 
 interface Message {
@@ -52,11 +52,29 @@ const exampleJson = {
 
 export function ChatPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showJson, setShowJson] = useState(false);
   const [chatHistory] = useState<Chat[]>([
     { id: '1', title: 'Financial Planning Discussion', date: '2024-03-20' },
     { id: '2', title: 'Investment Strategy', date: '2024-03-19' },
     { id: '3', title: 'Tax Planning', date: '2024-03-18' },
   ]);
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || file.type !== 'application/pdf') {
+      alert('Please upload a valid PDF file');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    // Simulate processing delay
+    setTimeout(() => {
+      setIsLoading(false);
+      setShowJson(true);
+    }, 5000);
+  };
 
   return (
     <div className="flex min-h-screen pt-16 relative">
@@ -148,15 +166,57 @@ export function ChatPage() {
       <div className="flex-1 transition-all duration-300 ml-16 group-hover:ml-72">
         <div className="max-w-4xl mx-auto p-6 min-h-[calc(100vh-4rem)]">
           <div className="bg-white/10 backdrop-blur-xl rounded-lg p-8">
-            <h2 className="text-2xl font-semibold text-white mb-4">Example ITR JSON Format</h2>
-            <div className="bg-black/30 rounded-lg p-6 overflow-auto max-h-[60vh] custom-scrollbar">
-              <pre className="text-white/90 text-sm">
-                {JSON.stringify(exampleJson, null, 2)}
-              </pre>
-            </div>
-            <p className="text-white/70 mt-4 text-sm">
-              This is an example of the ITR JSON format that will be generated from your Form 16.
-            </p>
+            {!showJson && !isLoading && (
+              <div className="text-center">
+                <div className="mb-6">
+                  <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Upload className="h-8 w-8 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-semibold text-white mb-2">Upload Form 16</h2>
+                  <p className="text-white/70">Upload your Form 16 PDF to generate ITR JSON</p>
+                </div>
+                
+                <div className="flex justify-center">
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="pdf-upload"
+                  />
+                  <label
+                    htmlFor="pdf-upload"
+                    className="cursor-pointer bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors inline-flex items-center gap-2"
+                  >
+                    <Upload className="h-5 w-5" />
+                    Choose File
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {isLoading && (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="w-16 h-16 relative">
+                  <div className="w-16 h-16 rounded-full border-4 border-white/20 border-t-purple-500 animate-spin"></div>
+                </div>
+                <p className="text-white mt-4">Processing Form 16...</p>
+              </div>
+            )}
+
+            {showJson && !isLoading && (
+              <>
+                <h2 className="text-2xl font-semibold text-white mb-4">Generated ITR JSON Format</h2>
+                <div className="bg-black/30 rounded-lg p-6 overflow-auto max-h-[60vh] custom-scrollbar">
+                  <pre className="text-white/90 text-sm">
+                    {JSON.stringify(exampleJson, null, 2)}
+                  </pre>
+                </div>
+                <p className="text-white/70 mt-4 text-sm">
+                  This is the generated ITR JSON format based on your Form 16.
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>
